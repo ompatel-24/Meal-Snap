@@ -14,32 +14,49 @@ export async function POST(req) {
 1. Detected Ingredients: ${ingredients.join(', ')}
 2. User Prompt: ${prompt}
 
-Generate a few recipe based on the provided information. Follow these steps for each one:
-1. Name of the recipe.
-2. Create a list of ingredients.
-3. Provide a detailed list of preparation steps.
-4. Specify the time to make the recipe.
-5. Include nutrition details.
-Output the result as valid JSON with the following keys:
-- ingredients: array of ingredients used,
-- steps: array of steps required to prepare the recipe,
-- time_to_make: string indicating preparation time,
-- nutrition: object containing key nutritional details.`
+Generate at least 3 or more recipes based on the provided information. All information MUST be filled. 
+Your response must be a valid JSON object with the following structure:
+
+{
+  "title": "Recipe Name",
+  "ingredients": ["ingredient 1", "ingredient 2", ...],
+  "steps": ["step 1", "step 2", ...],
+  "time_to_make": "30 minutes",
+  "nutrition": {
+    "calories": "350 kcal",
+    "protein": "15g",
+    "carbs": "40g",
+    "fat": "10g"
+  }
+}`
             },
             { role: 'user', content: prompt }
         ];
 
         const completion = await groq.chat.completions.create({
             messages,
-            model: 'llama3-70b-8192',
-            response_format: { type: "json_object" }
+            model: 'qwen-2.5-32b',
+            response_format: { type: "json_object" },
+            temperature: 0.7
         });
 
-        return NextResponse.json({ result: completion.choices[0].message.content });
+        let responseContent = completion.choices[0].message.content;
+
+        try {
+            const parsedContent = JSON.parse(responseContent);
+            return NextResponse.json({ result: parsedContent });
+        } catch (parseError) {
+            console.error('Failed to parse model response:', parseError);
+            console.log('Raw response:', responseContent);
+            return NextResponse.json(
+                { error: 'Invalid response format from the model' },
+                { status: 500 }
+            );
+        }
     } catch (error) {
         console.error('Error:', error);
         return NextResponse.json(
-            { error: 'Failed to generate' },
+            { error: 'Failed to generate recipe' },
             { status: 500 }
         );
     }
