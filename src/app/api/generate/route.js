@@ -14,8 +14,8 @@ export async function POST(req) {
 1. Detected Ingredients: ${ingredients.join(', ')}
 2. User Prompt: ${prompt}
 
-Generate at least 3 or more recipes based on the provided information. All information MUST be filled. 
-Your response must be a valid JSON object with the following structure:
+Generate at least 3 or more recipes based on the provided information, the ingredients should be the main part of the dish.
+All information MUST be filled. Your response must be a valid JSON object with the following structure:
 
 {
   "title": "Recipe Name",
