@@ -1,103 +1,141 @@
-import Image from "next/image";
+"use client";
+import { useState } from 'react';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [preview, setPreview] = useState('');
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [textInput, setTextInput] = useState('');
+  const [textOutput, setTextOutput] = useState('');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleGenerate = async (e) => {
+    e.preventDefault();
+    setError('');
+    setTextOutput('');
+
+    if (!preview) {
+      setError('Please upload an image first');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      let detectedIngredients = [];
+      if (!results) {
+        const base64Data = preview.split(',')[1];
+        const response = await fetch(
+            'https://detect.roboflow.com/infer/workflows/dataquest-ijnlj/custom-workflow-2',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                api_key: 'juNeHsnILSxkBrDBAi5j',
+                inputs: { image: { type: "base64", value: base64Data } }
+              }),
+            }
+        );
+
+        if (!response.ok) throw new Error(`API failed: ${response.status}`);
+
+        const result = await response.json();
+        setResults(result);
+        detectedIngredients = result?.outputs?.[0]?.predictions?.predictions?.map(p => p.class) || [];
+      } else {
+        detectedIngredients = results?.outputs?.[0]?.predictions?.predictions?.map(p => p.class) || [];
+      }
+
+      const generateResponse = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: textInput,
+          ingredients: detectedIngredients
+        }),
+      });
+
+      if (!generateResponse.ok) {
+        const errorData = await generateResponse.json();
+        throw new Error(errorData.error || 'Generation failed');
+      }
+
+      const data = await generateResponse.json();
+      setTextOutput(data.result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        {preview && (
+            <div className="mt-4">
+              <img
+                  src={preview}
+                  alt="Preview"
+                  className="max-w-xs max-h-48 object-contain"
+              />
+            </div>
+        )}
+
+        <br></br>
+
+        <form onSubmit={handleGenerate} className="flex items-center">
+
+          <div className="relative">
+            <input
+                type="text"
+                placeholder="Enter your text prompt"
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                className="pl-24 pr-2 py-2 border rounded-l w-80 focus:outline-none"
+                disabled={loading}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+                id="file-upload"
+            />
+            <label
+                htmlFor="file-upload"
+                className="absolute left-0 top-0 bottom-0 flex items-center px-3 border-r border-gray-300 cursor-pointer rounded-l"
+            >
+              Upload
+            </label>
+          </div>
+          <button
+              type="submit"
+              disabled={loading}
+              className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600 disabled:bg-gray-400"
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            {loading ? 'Processing...' : 'Search'}
+          </button>
+        </form>
+
+        {error && <div className="text-red-500 mt-4">Error: {error}</div>}
+
+        {textOutput && (
+            <div className="border p-4 mt-4">
+              <h2 className="text-xl font-semibold mb-2">Result:</h2>
+              <pre className="whitespace-pre-wrap">{textOutput}</pre>
+            </div>
+        )}
+      </div>
   );
 }
