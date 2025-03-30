@@ -1,41 +1,81 @@
 "use client";
 import { useState } from 'react';
+import { FiUpload, FiSearch, FiChevronDown, FiChevronUp, FiClock } from 'react-icons/fi';
 
 const RecipeBlock = ({ recipe }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
       <div
-          className="border border-gray-300 rounded-lg my-2 p-4 shadow-sm cursor-pointer transition-colors duration-300 hover:bg-gray-800"
-          onClick={() => setIsExpanded(!isExpanded)}
+          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl my-4 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
       >
-        <div className="flex justify-between items-center font-semibold">
-          <span>{recipe.title}</span>
-          <span>{recipe.time_to_make}</span>
+        <div
+            className="flex justify-between items-center p-5 cursor-pointer"
+            onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <h3 className="text-xl font-medium text-gray-800 dark:text-white">{recipe.title}</h3>
+          <div className="flex items-center space-x-2">
+          <span className="flex items-center text-gray-500 dark:text-gray-300 text-sm">
+            <FiClock className="mr-1" /> {recipe.time_to_make}
+          </span>
+            {isExpanded ?
+                <FiChevronUp className="text-blue-500" /> :
+                <FiChevronDown className="text-blue-500" />
+            }
+          </div>
         </div>
+
         {isExpanded && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <h4 className="font-medium mb-2">Ingredients:</h4>
-              <ul className="list-disc pl-5 mb-4">
-                {recipe.ingredients.map((ingredient, index) => (
-                    <li key={index} className="text-gray-600">{ingredient}</li>
-                ))}
-              </ul>
+            <div className="p-5 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-lg mb-3 text-gray-700 dark:text-gray-200">Ingredients</h4>
+                  <ul className="space-y-2">
+                    {recipe.ingredients.map((ingredient, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mt-1.5 mr-2"></span>
+                          <span className="text-gray-600 dark:text-gray-400">{ingredient}</span>
+                        </li>
+                    ))}
+                  </ul>
+                </div>
 
-              <h4 className="font-medium mb-2">Nutrition:</h4>
-              <ul className="list-disc pl-5 mb-4">
-                <li className="text-gray-600">Calories: {recipe.nutrition.calories}</li>
-                <li className="text-gray-600">Protein: {recipe.nutrition.protein}g</li>
-                <li className="text-gray-600">Fat: {recipe.nutrition.fat}g</li>
-                <li className="text-gray-600">Carbohydrates: {recipe.nutrition.carbohydrates}g</li>
-              </ul>
+                <div>
+                  <h4 className="font-medium text-lg mb-3 text-gray-700 dark:text-gray-200">Nutrition</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Calories</div>
+                      <div className="font-medium text-gray-800 dark:text-white">{recipe.nutrition.calories}</div>
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Protein</div>
+                      <div className="font-medium text-gray-800 dark:text-white">{recipe.nutrition.protein}</div>
+                    </div>
+                    <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Fat</div>
+                      <div className="font-medium text-gray-800 dark:text-white">{recipe.nutrition.fat}</div>
+                    </div>
+                    <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Carbs</div>
+                      <div className="font-medium text-gray-800 dark:text-white">{recipe.nutrition.carbohydrates || recipe.nutrition.carbs}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-              <h4 className="font-medium mb-2">Steps:</h4>
-              <ol className="list-decimal pl-5">
-                {recipe.steps.map((step, index) => (
-                    <li key={index} className="text-gray-600 mb-2">{step}</li>
-                ))}
-              </ol>
+              <div className="mt-6">
+                <h4 className="font-medium text-lg mb-3 text-gray-700 dark:text-gray-200">Preparation Steps</h4>
+                <ol className="space-y-3">
+                  {recipe.steps.map((step, index) => (
+                      <li key={index} className="flex">
+                  <span className="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-500 text-sm font-medium mr-3">
+                    {index + 1}
+                  </span>
+                        <span className="text-gray-600 dark:text-gray-400">{step}</span>
+                      </li>
+                  ))}
+                </ol>
+              </div>
             </div>
         )}
       </div>
@@ -127,7 +167,6 @@ export default function Home() {
         detectedIngredients = results?.outputs?.[0]?.predictions?.predictions?.map(p => p.class) || [];
       }
 
-      // Implement improved retry logic for generate API
       const callGenerateAPI = async (retries = 3) => {
         try {
           const generateResponse = await fetch('/api/generate', {
@@ -179,64 +218,114 @@ export default function Home() {
   };
 
   return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        {preview && (
-            <div className="mt-4">
-              <img
-                  src={preview}
-                  alt="Preview"
-                  className="max-w-xs max-h-48 object-contain"
-              />
-            </div>
-        )}
-
-        <br />
-
-        <form onSubmit={handleGenerate} className="flex items-center">
-          <div className="relative">
-            <input
-                type="text"
-                placeholder="Enter your text prompt"
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
-                className="pl-24 pr-2 py-2 border rounded-l w-80 focus:outline-none"
-                disabled={loading}
-            />
-            <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-                id="file-upload"
-            />
-            <label
-                htmlFor="file-upload"
-                className="absolute left-0 top-0 bottom-0 flex items-center px-3 border-r border-gray-300 cursor-pointer rounded-l"
-            >
-              Upload
-            </label>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-950 dark:to-gray-900 text-gray-800 dark:text-white">
+        <header className="bg-white dark:bg-gray-800 shadow-sm">
+          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">AI Recipe Generator</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Upload an image of ingredients and let AI suggest delicious recipes</p>
           </div>
-          <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600 disabled:bg-gray-400"
-          >
-            {loading ? 'Processing...' : 'Search'}
-          </button>
-        </form>
+        </header>
 
-        {error && <div className="text-red-500 mt-4">Error: {error}</div>}
+        <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
+              <div className="flex flex-col items-center">
+                {preview ? (
+                    <div className="mb-6 relative group">
+                      <img
+                          src={preview}
+                          alt="Uploaded ingredients"
+                          className="max-h-64 rounded-lg object-contain border border-gray-200 dark:border-gray-700 p-2 bg-gray-50 dark:bg-gray-900"
+                      />
+                      <label
+                          htmlFor="file-upload"
+                          className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 rounded-lg transition-opacity cursor-pointer"
+                      >
+                    <span className="text-white flex items-center">
+                      <FiUpload className="mr-2" /> Change image
+                    </span>
+                      </label>
+                    </div>
+                ) : (
+                    <div className="mb-6 w-full">
+                      <label
+                          htmlFor="file-upload"
+                          className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <FiUpload className="w-10 h-10 mb-3 text-gray-400" />
+                          <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG (MAX. 10MB)</p>
+                        </div>
+                      </label>
+                    </div>
+                )}
 
-        {textOutput?.recipes && (
-            <div className="w-full max-w-2xl mt-6 px-4">
-              <h2 className="text-2xl font-bold mb-4 text-center">Generated Recipes</h2>
-              <div className="space-y-4">
-                {textOutput.recipes.map((recipe, index) => (
-                    <RecipeBlock key={index} recipe={recipe} />
-                ))}
+                <form onSubmit={handleGenerate} className="w-full">
+                  <div className="relative flex items-center mb-6">
+                    <input
+                        type="text"
+                        placeholder="What would you like to cook today?"
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        className="w-full py-4 pl-4 pr-16 rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:text-white"
+                        disabled={loading}
+                    />
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="absolute right-2 inset-y-2 flex items-center justify-center w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white transition-colors"
+                    >
+                      {loading ?
+                          <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div> :
+                          <FiSearch className="w-5 h-5" />
+                      }
+                    </button>
+                  </div>
+                  <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      id="file-upload"
+                  />
+                </form>
+
+                {error && (
+                    <div className="w-full mt-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300">
+                      {error}
+                    </div>
+                )}
+
+                {loading && (
+                    <div className="w-full mt-6 flex flex-col items-center">
+                      <div className="w-12 h-12 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
+                      <p className="text-gray-500 dark:text-gray-400 mt-4">
+                        Analyzing ingredients and generating recipes...
+                      </p>
+                    </div>
+                )}
               </div>
             </div>
-        )}
+
+            {textOutput?.recipes && (
+                <div className="mb-12">
+                  <h2 className="text-2xl font-bold text-center mb-6">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+                  Delicious Recipe Suggestions
+                </span>
+                  </h2>
+                  <div>
+                    {textOutput.recipes.map((recipe, index) => (
+                        <RecipeBlock key={index} recipe={recipe} />
+                    ))}
+                  </div>
+                </div>
+            )}
+          </div>
+        </main>
       </div>
   );
 }
