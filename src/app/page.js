@@ -15,9 +15,13 @@ const RecipeBlock = ({ recipe }) => {
         >
           <h3 className="text-xl font-medium text-gray-800 dark:text-white">{recipe.title}</h3>
           <div className="flex items-center space-x-2">
-          <span className="flex items-center text-gray-500 dark:text-gray-300 text-sm">
-            <FiClock className="mr-1" /> {recipe.time_to_make}
-          </span>
+    <span className="flex items-center text-gray-500 dark:text-gray-300 text-sm">
+      <span className="font-medium">{recipe.nutrition.calories}</span>
+    </span>
+            <span className="text-gray-400 dark:text-gray-500">•</span>
+            <span className="flex items-center text-gray-500 dark:text-gray-300 text-sm">
+      <FiClock className="mr-1" /> {recipe.time_to_make}
+    </span>
             {isExpanded ?
                 <FiChevronUp className="text-blue-500" /> :
                 <FiChevronDown className="text-blue-500" />
