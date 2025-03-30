@@ -1,13 +1,54 @@
 "use client";
 import { useState } from 'react';
 
+const RecipeBlock = ({ recipe }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+      <div
+          className="border border-gray-300 rounded-lg my-2 p-4 shadow-sm cursor-pointer transition-colors duration-300 hover:bg-gray-800"
+          onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex justify-between items-center font-semibold">
+          <span>{recipe.name}</span>
+          <span>{recipe.time_to_make}</span>
+        </div>
+        {isExpanded && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <h4 className="font-medium mb-2">Ingredients:</h4>
+              <ul className="list-disc pl-5 mb-4">
+                {recipe.ingredients.map((ingredient, index) => (
+                    <li key={index} className="text-gray-600">{ingredient}</li>
+                ))}
+              </ul>
+
+              <h4 className="font-medium mb-2">Nutrition:</h4>
+              <ul className="list-disc pl-5 mb-4">
+                <li className="text-gray-600">Calories: {recipe.nutrition.calories}</li>
+                <li className="text-gray-600">Protein: {recipe.nutrition.protein}g</li>
+                <li className="text-gray-600">Fat: {recipe.nutrition.fat}g</li>
+                <li className="text-gray-600">Carbohydrates: {recipe.nutrition.carbohydrates}g</li>
+              </ul>
+
+              <h4 className="font-medium mb-2">Steps:</h4>
+              <ol className="list-decimal pl-5">
+                {recipe.steps.map((step, index) => (
+                    <li key={index} className="text-gray-600 mb-2">{step}</li>
+                ))}
+              </ol>
+            </div>
+        )}
+      </div>
+  );
+};
+
 export default function Home() {
   const [preview, setPreview] = useState('');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [textInput, setTextInput] = useState('');
-  const [textOutput, setTextOutput] = useState('');
+  const [textOutput, setTextOutput] = useState(null);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -23,7 +64,7 @@ export default function Home() {
   const handleGenerate = async (e) => {
     e.preventDefault();
     setError('');
-    setTextOutput('');
+    setTextOutput(null);
 
     if (!preview) {
       setError('Please upload an image first');
@@ -72,7 +113,12 @@ export default function Home() {
       }
 
       const data = await generateResponse.json();
-      setTextOutput(data.result);
+      try {
+        const parsedResult = JSON.parse(data.result);
+        setTextOutput(parsedResult);
+      } catch (err) {
+        throw new Error('Failed to parse recipes');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -92,10 +138,9 @@ export default function Home() {
             </div>
         )}
 
-        <br></br>
+        <br />
 
         <form onSubmit={handleGenerate} className="flex items-center">
-
           <div className="relative">
             <input
                 type="text"
@@ -130,10 +175,14 @@ export default function Home() {
 
         {error && <div className="text-red-500 mt-4">Error: {error}</div>}
 
-        {textOutput && (
-            <div className="border p-4 mt-4">
-              <h2 className="text-xl font-semibold mb-2">Result:</h2>
-              <pre className="whitespace-pre-wrap">{textOutput}</pre>
+        {textOutput?.recipes && (
+            <div className="w-full max-w-2xl mt-6 px-4">
+              <h2 className="text-2xl font-bold mb-4 text-center">Generated Recipes</h2>
+              <div className="space-y-4">
+                {textOutput.recipes.map((recipe, index) => (
+                    <RecipeBlock key={index} recipe={recipe} />
+                ))}
+              </div>
             </div>
         )}
       </div>
