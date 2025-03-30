@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-    title: "Fridge to Recipe",
+    title: "Meal Snap",
     description: "Generate recipes from your fridge contents",
 };
 

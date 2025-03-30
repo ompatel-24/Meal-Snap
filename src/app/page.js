@@ -221,7 +221,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-950 dark:to-gray-900 text-gray-800 dark:text-white">
         <header className="bg-white dark:bg-gray-800 shadow-sm">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">AI Recipe Generator</h1>
+            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">Meal Snap</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">Upload an image of ingredients and let AI suggest delicious recipes</p>
           </div>
         </header>
