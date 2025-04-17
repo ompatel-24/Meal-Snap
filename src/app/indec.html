@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Roboflow Image Upload</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    #output { background: #f5f5f5; padding: 1em; border-radius: 4px; white-space: pre-wrap; }
+    button { margin-top: 0.5em; }
+  </style>
+</head>
+<body>
+  <h1>Upload an Image for Roboflow Inference</h1>
+  <input type="file" id="imageUpload" accept="image/*">
+  <br>
+  <button id="submitBtn">Run Inference</button>
+  <h2>Result:</h2>
+  <pre id="output">Waiting for your image…</pre>
+
+  <script>
+    const apiKey      = 'D8l97CX5KebsPkr4R7GL';
+    const workflowURL = 'https://serverless.roboflow.com/infer/workflows/dataquest-ijnlj/custom-workflow';
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('imageUpload');
+      if (!fileInput.files.length) {
+        alert('Please select an image file first.');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = async () => {
+        // strip off the "data:*/*;base64," prefix
+        const base64Data = reader.result.split(',')[1];
+
+        try {
+          const resp = await fetch(workflowURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              api_key: apiKey,
+              inputs: {
+                image: {
+                  type: 'base64',
+                  value: base64Data
+                }
+              }
+            })
+          });
+
+          if (!resp.ok) {
+            throw new Error(`API returned ${resp.status} ${resp.statusText}`);
+          }
+
+          const result = await resp.json();
+          console.log(result);
+          document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+        } catch (err) {
+          console.error(err);
+          document.getElementById('output').textContent = 'Error: ' + err.message;
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>
