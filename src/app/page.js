@@ -143,7 +143,7 @@ export default function Home() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            api_key: 'D8l97CX5KebsPkr4R7GL',
+            api_key: process.env.NEXT_PUBLIC_ROBOFLOW,
             inputs: { image: { type: 'base64', value: base64Data } }
           }),
           signal: AbortSignal.timeout(45000)
