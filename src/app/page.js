@@ -247,7 +247,7 @@ export default function Home() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="absolute right-2 inset-y-2 flex items-center justify-center w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white transition-colors"
+                    className="absolute right-2.5 top-1/2 transform -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-md bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white transition-colors"
                   >
                     {loading ? (
                       <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
