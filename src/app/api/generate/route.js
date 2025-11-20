@@ -38,7 +38,7 @@ export async function POST(req) {
 
         const completion = await groq.chat.completions.create({
             messages,
-            model: 'groq/compound',
+            model: 'llama-3.1-8b-instant',
             response_format: { type: "json_object" },
             temperature: 0.7
         });
