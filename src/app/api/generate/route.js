@@ -38,12 +38,17 @@ export async function POST(req) {
 
         const completion = await groq.chat.completions.create({
             messages,
-            model: 'gemma2-9b-it',
+            model: 'groq/compound',
             response_format: { type: "json_object" },
             temperature: 0.7
         });
 
         let responseContent = completion.choices[0].message.content;
+
+        const jsonMatch = responseContent.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+        if (jsonMatch) {
+            responseContent = jsonMatch[1];
+        }
 
         try {
             const parsedContent = JSON.parse(responseContent);
